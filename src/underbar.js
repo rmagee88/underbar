@@ -165,20 +165,37 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-		if (accumulator === undefined) {
-			accumulator = collection[0];
+		if (collection.length === undefined) {
+			if (accumulator === undefined) {
+				accumulator = collection[Object.keys(collection)[0]];
 			
-			for (var i = 1; i < collection.length; i++) {
-				accumulator = iterator(accumulator, collection[i]);
-			};
-		} else {	
+				for (var i in collection) {
+					accumulator = iterator(accumulator, collection[i]);
+				};
+			} else {	
 
-			for (var i = 0; i < collection.length; i++) {
-				accumulator = iterator(accumulator, collection[i]);
-			};
+				for (var i in collection) {
+					accumulator = iterator(accumulator, collection[i]);
+				};
+			};	
+			return accumulator;	
+		} else {
+			if (accumulator === undefined) {
+				accumulator = collection[0];
+			
+				for (var i = 1; i < collection.length; i++) {
+					accumulator = iterator(accumulator, collection[i]);
+				};
+			} else {	
+
+				for (var i = 0; i < collection.length; i++) {
+					accumulator = iterator(accumulator, collection[i]);
+				};
+			};	
+			return accumulator;	
 		};	
-		return accumulator;
 	};
+
 
   // Determine if the array or object contains a given value (using `===`).
   _.contains = function(collection, target) {
@@ -187,22 +204,73 @@
     return _.reduce(collection, function(wasFound, item) {
       if (wasFound) {
         return true;
-      }
-      return item === target;
-    }, false);
+      };
+			return item === target;
+		}, false);
   };
 
 
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
-  };
+		// check to see if there is a second argument
+		if (iterator === undefined) {
+			return _.reduce(collection, function(foundFalse, item) {
+				if (!foundFalse) {
+					return false;
+				};	
+				if (item) {
+					return true;
+				} else {
+					return false;
+				};	
+			}, true);
+		} else {	
+			return _.reduce(collection, function(foundFalse, item) {
+				if (!foundFalse) {
+					return false;
+				};	
+				if (iterator(item)) {
+					return true;
+				} else {
+					return false;
+				};	
+			}, true);
+		}; 
+	};
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
-  };
+		if (arguments.length < 2) {
+			iterator = _.identity;
+		};
+
+		if (Object.keys(collection).length === 0 || collection.length === 0) {
+			return false;
+		};
+		// adding a new function that gives us the opposite of the iterator	
+		function oppIterator(val) {
+			if (iterator(val)) {
+				return false;
+			} else {
+				return true; 
+			};	
+		};	
+		// if every value is true, return true 	
+		if (_.every(collection, iterator)) {
+			return true;
+		// else if every value is false, return false (there are no trues)
+		} else if (_.every(collection, oppIterator)) {
+			return false;
+		// if they're not all true, and they're not all false, at least one is true
+		} else {
+			return true;
+		};
+
+		//return (_.every(collection, iterator)); 
+	};
 
 
   /**
@@ -224,12 +292,42 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
-  };
+		var num_args = arguments.length;
+		// if no extra objects, return the given object	
+		if (num_args < 2) {
+			return obj;
+		} else {
+			// loop through remaining arguments
+			for (var i = 1; i < arguments.length; i++) {
+				// loop through the properties of each object and add to original object
+				for (var key in arguments[i]) {
+					obj[key] = arguments[i][key];
+				};
+			};
+		};
+	return obj;
+	};
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
-  };
+		var num_args = arguments.length;
+		// if no extra objects, return the given object	
+		if (num_args < 2) {
+			return obj;
+		} else {
+			// loop through remaining arguments
+			for (var i = 1; i < arguments.length; i++) {
+				// loop through the properties of each object and add to original object
+				for (var key in arguments[i]) {
+					if (!obj.hasOwnProperty(key)) {
+						obj[key] = arguments[i][key];	
+					};	
+				};
+			};
+		};
+	return obj;
+	};
 
 
   /**
@@ -272,7 +370,23 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-  };
+		// object to store the key (argument) and value (result)
+		var results = {};
+		// actual result of the function being called
+		var result;
+		// function that checks the results for the arguments passed, 
+		// otherwise it will execute the function for those arguments and store the
+		// results
+		return function() {
+			if (results.hasOwnProperty(arguments[0])) {
+				return results[arguments[0]];
+			} else {
+				result = func.apply(this,arguments);	
+				results[arguments[0]] = result;
+			};
+			return result;
+		};
+	};
 
   // Delays a function for the given number of milliseconds, and then calls
   // it with the arguments supplied.
@@ -281,7 +395,15 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
-  };
+		// give me all the args after the first 2	
+		var args = Array.prototype.slice.call(arguments, 2);	
+		// if there are more than 2, pass them to the function when it's called	
+		if (arguments.length > 2) {
+		setTimeout(func.apply(this, args), wait);
+		};
+		// otherwise just call the function	
+		setTimeout(func, wait);
+	};
 
 
   /**
@@ -295,7 +417,21 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
-  };
+		// make a new copy of the given array
+		var newArray = array.slice(), tmpVal, currVal, rndIndex;
+		// loop through the array and place each of the original values in 
+		// a new spot, while maintaing the original set
+		for (var i = 0; i < newArray.length; i++ ) {
+			rndIndex = Math.round(Math.random() * newArray.length);	
+			tmpVal = newArray[i];
+			newArray[i] = newArray[rndIndex];
+			newArray[rndIndex] = tmpVal;	
+		}; 
+
+		//newArray[Math.round(Math.random() * array.length)]	
+		//return the newly shuffle array
+		return newArray;
+	};
 
 
   /**
