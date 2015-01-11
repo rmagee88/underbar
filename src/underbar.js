@@ -425,7 +425,7 @@
 		// index of it so that you don't undo your random changes
 		var shrinkLength = newArray.length;
 		for (var i = 0; i < newArray.length; i++ ) {
-			rndIndex = Math.floor(Math.random() * shrinkLength);	
+			rndIndex = Math.floor(Math.random() * (shrinkLength - 1));
 			tmpVal = newArray[i];
 			newArray[i] = newArray[rndIndex];
 			newArray[rndIndex] = tmpVal;
