@@ -418,18 +418,20 @@
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
 		// make a new copy of the given array
-		var newArray = array.slice(), tmpVal, currVal, rndIndex;
+		var newArray = array.slice(), tmpVal, currVal, rndIndex, startLength;
 		// loop through the array and place each of the original values in 
-		// a new spot, while maintaing the original set
+		// a new spot, while maintaing the original set, also start with the
+		// length of the array and make sure that you use a shrinking
+		// index of it so that you don't undo your random changes
+		var shrinkLength = newArray.length;
 		for (var i = 0; i < newArray.length; i++ ) {
-			rndIndex = Math.round(Math.random() * newArray.length);	
+			rndIndex = Math.floor(Math.random() * shrinkLength);	
 			tmpVal = newArray[i];
 			newArray[i] = newArray[rndIndex];
-			newArray[rndIndex] = tmpVal;	
+			newArray[rndIndex] = tmpVal;
+			shrinkLength -=1;	
 		}; 
 
-		//newArray[Math.round(Math.random() * array.length)]	
-		//return the newly shuffle array
 		return newArray;
 	};
 
